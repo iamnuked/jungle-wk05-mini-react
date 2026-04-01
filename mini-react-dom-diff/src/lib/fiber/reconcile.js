@@ -385,7 +385,7 @@ function diffProps(previousAttrs, nextAttrs) {
   const names = new Set([...Object.keys(previousAttrs), ...Object.keys(nextAttrs)]);
 
   for (const name of names) {
-    if (!(name in nextAttrs)) {
+    if (!(name in nextAttrs) || nextAttrs[name] === undefined) {
       remove.push(name);
       continue;
     }

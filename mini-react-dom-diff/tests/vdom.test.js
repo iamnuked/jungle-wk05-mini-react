@@ -11,6 +11,7 @@ import {
   commitRoot,
   reconcileTrees,
 } from '../src/lib/fiber.js';
+import { createRoot } from '../src/mini-react/index.js';
 
 function normalizeHtml(html) {
   return html.replace(/\s+</g, '<').replace(/>\s+/g, '>').trim();
@@ -150,5 +151,83 @@ describe('Virtual DOM + Fiber commit engine', () => {
 
     expect(buttonNode.attrs.onclick).toBe("alert('hello')");
     expect(container.querySelector('button').getAttribute('onclick')).toBe("alert('hello')");
+  });
+
+  it('binds function event props to the mounted DOM element', () => {
+    const clicks = [];
+    const tree = {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          tag: 'button',
+          attrs: {
+            type: 'button',
+            onClick: () => {
+              clicks.push('clicked');
+            },
+          },
+          children: [
+            { type: 'text', value: 'Click' },
+          ],
+        },
+      ],
+    };
+    const container = document.createElement('div');
+
+    mountVNode(container, tree);
+    container.querySelector('button').click();
+
+    expect(clicks).toEqual(['clicked']);
+  });
+
+  it('replaces and removes event handlers across rerenders', () => {
+    const container = document.createElement('div');
+    const calls = [];
+
+    function ToggleButton(props) {
+      return {
+        type: 'element',
+        tag: 'button',
+        attrs: {
+          type: 'button',
+          onClick: props.enabled ? props.onPrimaryClick : undefined,
+        },
+        children: [
+          {
+            type: 'text',
+            value: props.enabled ? 'enabled' : 'disabled',
+          },
+        ],
+      };
+    }
+
+    const root = createRoot(ToggleButton, container, {
+      enabled: true,
+      onPrimaryClick: () => {
+        calls.push('first');
+      },
+    });
+
+    root.mount();
+    container.querySelector('button').click();
+
+    root.update({
+      enabled: true,
+      onPrimaryClick: () => {
+        calls.push('second');
+      },
+    });
+    container.querySelector('button').click();
+
+    root.update({
+      enabled: false,
+      onPrimaryClick: () => {
+        calls.push('third');
+      },
+    });
+    container.querySelector('button').click();
+
+    expect(calls).toEqual(['first', 'second']);
   });
 });
