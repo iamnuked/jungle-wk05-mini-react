@@ -1,0 +1,179 @@
+import { normalizeAnswer } from '../src/domain/normalize.js';
+import {
+  buildQuestion,
+  createQuestion,
+  flattenBreeds,
+  isCorrectAnswer,
+} from '../src/domain/quiz.js';
+import {
+  DOG_API_BASE_URL,
+  fetchBreedList,
+  fetchRandomImageByBreed,
+} from '../src/services/api.js';
+
+const BREED_MESSAGE = {
+  bulldog: ['french'],
+  pug: [],
+};
+
+describe('Domain and service layer', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('normalizeAnswer trims spaces and treats hyphen/space variants equally', () => {
+    expect(normalizeAnswer(' French-Bulldog  ')).toBe('french bulldog');
+  });
+
+  it('flattenBreeds converts Dog CEO breed objects into BreedEntry[]', () => {
+    expect(flattenBreeds(BREED_MESSAGE)).toEqual([
+      {
+        key: 'bulldog-french',
+        breed: 'bulldog',
+        subBreed: 'french',
+        label: 'French Bulldog',
+      },
+      {
+        key: 'pug',
+        breed: 'pug',
+        subBreed: null,
+        label: 'Pug',
+      },
+    ]);
+  });
+
+  it('isCorrectAnswer compares user input against normalized answer labels', () => {
+    const answer = {
+      key: 'bulldog-french',
+      breed: 'bulldog',
+      subBreed: 'french',
+      label: 'French Bulldog',
+    };
+
+    expect(isCorrectAnswer(' french-bulldog ', answer)).toBe(true);
+    expect(isCorrectAnswer('english bulldog', answer)).toBe(false);
+  });
+
+  it('createQuestion selects an answer and combines it with the fetched image', async () => {
+    const breedList = flattenBreeds(BREED_MESSAGE);
+    const fetchImage = vi.fn(async (entry) => {
+      return {
+        imageUrl: `https://images.example/${entry.key}.jpg`,
+      };
+    });
+
+    const question = await createQuestion(breedList, fetchImage, {
+      questionNumber: 2,
+      random: () => 0.99,
+    });
+
+    expect(fetchImage).toHaveBeenCalledWith(breedList[1]);
+    expect(question).toEqual(
+      buildQuestion(
+        breedList[1],
+        'https://images.example/pug.jpg',
+        'q-2',
+      ),
+    );
+  });
+
+  it('fetchBreedList validates the response and returns flattened BreedEntry[]', async () => {
+    const fetchMock = vi.fn(async () => {
+      return {
+        ok: true,
+        async json() {
+          return {
+            status: 'success',
+            message: BREED_MESSAGE,
+          };
+        },
+      };
+    });
+
+    const breedList = await fetchBreedList(fetchMock);
+
+    expect(fetchMock).toHaveBeenCalledWith(`${DOG_API_BASE_URL}/breeds/list/all`);
+    expect(breedList[0].label).toBe('French Bulldog');
+    expect(breedList[1].label).toBe('Pug');
+  });
+
+  it('fetchBreedList throws INVALID_RESPONSE for malformed payloads', async () => {
+    const fetchMock = vi.fn(async () => {
+      return {
+        ok: true,
+        async json() {
+          return {
+            status: 'success',
+            message: 'not-an-object',
+          };
+        },
+      };
+    });
+
+    await expect(fetchBreedList(fetchMock)).rejects.toMatchObject({
+      code: 'INVALID_RESPONSE',
+    });
+  });
+
+  it('fetchRandomImageByBreed builds the right URL for breeds and sub-breeds', async () => {
+    const fetchMock = vi.fn(async () => {
+      return {
+        ok: true,
+        async json() {
+          return {
+            status: 'success',
+            message: 'https://images.example/random.jpg',
+          };
+        },
+      };
+    });
+
+    const breedOnlyEntry = {
+      key: 'pug',
+      breed: 'pug',
+      subBreed: null,
+      label: 'Pug',
+    };
+    const subBreedEntry = {
+      key: 'bulldog-french',
+      breed: 'bulldog',
+      subBreed: 'french',
+      label: 'French Bulldog',
+    };
+
+    await fetchRandomImageByBreed(breedOnlyEntry, fetchMock);
+    await fetchRandomImageByBreed(subBreedEntry, fetchMock);
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      `${DOG_API_BASE_URL}/breed/pug/images/random`,
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      `${DOG_API_BASE_URL}/breed/bulldog/french/images/random`,
+    );
+  });
+
+  it('fetchRandomImageByBreed throws DOG_API_ERROR when the API returns an error payload', async () => {
+    const fetchMock = vi.fn(async () => {
+      return {
+        ok: true,
+        async json() {
+          return {
+            status: 'error',
+            message: 'Breed not found',
+          };
+        },
+      };
+    });
+
+    await expect(fetchRandomImageByBreed({
+      key: 'unknown',
+      breed: 'unknown',
+      subBreed: null,
+      label: 'Unknown',
+    }, fetchMock)).rejects.toMatchObject({
+      code: 'DOG_API_ERROR',
+    });
+  });
+});
