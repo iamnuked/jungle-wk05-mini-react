@@ -73,13 +73,30 @@ export class FunctionComponent {
     return nextVNode;
   }
 
+  destroy() {
+    this.cleanupEffects();
+
+    if (this.container) {
+      this.container.replaceChildren();
+    }
+
+    this.hooks = [];
+    this.hookIndex = 0;
+    this.pendingEffects = [];
+    this.currentVNode = null;
+    this.currentTree = null;
+    this.isMounted = false;
+  }
+
   renderVNode() {
     this.pendingEffects = [];
     this.hookIndex = 0;
     setCurrentComponent(this);
 
     try {
-      return this.componentFn(this.props);
+      const renderedVNode = this.componentFn(this.props);
+      validateRenderedVNode(renderedVNode);
+      return renderedVNode;
     } finally {
       clearCurrentComponent();
     }
@@ -93,11 +110,36 @@ export class FunctionComponent {
       runEffect();
     }
   }
+
+  cleanupEffects() {
+    for (const hook of this.hooks) {
+      if (hook?.kind !== 'effect' || typeof hook.cleanup !== 'function') {
+        continue;
+      }
+
+      hook.cleanup();
+      hook.cleanup = null;
+    }
+  }
 }
 
 function wrapRenderTree(vnode) {
+  if (vnode.type === 'root') {
+    return vnode;
+  }
+
   return {
     type: 'root',
     children: [vnode],
   };
+}
+
+function validateRenderedVNode(vnode) {
+  if (!vnode || typeof vnode !== 'object' || Array.isArray(vnode)) {
+    throw new Error('함수형 컴포넌트는 vnode 객체를 반환해야 합니다.');
+  }
+
+  if (!['root', 'element', 'text'].includes(vnode.type)) {
+    throw new Error('함수형 컴포넌트는 root, element, text vnode만 반환할 수 있습니다.');
+  }
 }

@@ -11,6 +11,9 @@ export function createRoot(componentFn, container, initialProps = {}) {
     update(nextProps = instance.props) {
       return instance.update(nextProps);
     },
+    unmount() {
+      return instance.destroy();
+    },
   };
 }
 
