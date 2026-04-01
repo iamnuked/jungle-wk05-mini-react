@@ -5,21 +5,22 @@ import {
   isCorrectAnswer,
 } from './domain/quiz.js';
 import {
-  fetchBreedList,
+  fetchQuizBreedList,
   fetchRandomImageByBreed,
 } from './services/api.js';
 
 export const DEFAULT_TOTAL_QUESTION_OPTIONS = [3, 5, 10];
+export const DEFAULT_TOTAL_QUESTIONS = 3;
 
 const DEFAULT_API = {
-  fetchBreedList,
+  fetchBreedList: fetchQuizBreedList,
   fetchRandomImageByBreed,
 };
 
 export function createInitialAppState(overrides = {}) {
   return {
     phase: 'start',
-    totalQuestions: 5,
+    totalQuestions: DEFAULT_TOTAL_QUESTIONS,
     currentQuestionIndex: 0,
     breedList: [],
     currentQuestion: null,
@@ -39,7 +40,7 @@ export function App(props = {}) {
   const totalQuestionOptions = props.totalQuestionOptions ?? DEFAULT_TOTAL_QUESTION_OPTIONS;
   const [state, setState] = useState(() => {
     return createInitialAppState({
-      totalQuestions: props.initialTotalQuestions ?? 5,
+      totalQuestions: props.initialTotalQuestions ?? DEFAULT_TOTAL_QUESTIONS,
     });
   });
 

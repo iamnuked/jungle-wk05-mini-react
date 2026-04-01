@@ -3,8 +3,9 @@ const WHITESPACE_PATTERN = /\s+/g;
 
 export function normalizeAnswer(input) {
   return String(input ?? '')
+    .normalize('NFKC')
     .trim()
     .toLowerCase()
     .replace(DASH_LIKE_PATTERN, ' ')
-    .replace(WHITESPACE_PATTERN, ' ');
+    .replace(WHITESPACE_PATTERN, '');
 }

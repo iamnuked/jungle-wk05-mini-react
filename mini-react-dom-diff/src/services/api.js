@@ -1,3 +1,4 @@
+import curatedBreedList from '../data/curated-breeds.json';
 import { flattenBreeds } from '../domain/quiz.js';
 
 export const DOG_API_BASE_URL = 'https://dog.ceo/api';
@@ -8,6 +9,17 @@ export function createApiError(code, message, cause) {
     message,
     ...(cause === undefined ? {} : { cause }),
   };
+}
+
+export async function fetchQuizBreedList() {
+  return curatedBreedList.map((entry) => {
+    return {
+      ...entry,
+      acceptedAnswers: Array.isArray(entry.acceptedAnswers)
+        ? [...entry.acceptedAnswers]
+        : [],
+    };
+  });
 }
 
 export async function fetchBreedList(fetchImpl = globalThis.fetch) {
