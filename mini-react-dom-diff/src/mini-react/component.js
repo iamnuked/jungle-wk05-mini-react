@@ -18,6 +18,7 @@ export class FunctionComponent {
     this.hookIndex = 0;
     this.pendingEffects = [];
     this.currentVNode = null;
+    this.currentTree = null;
     this.isMounted = false;
     this.onRender = typeof options.onRender === 'function' ? options.onRender : null;
   }
@@ -32,8 +33,10 @@ export class FunctionComponent {
     }
 
     const nextVNode = this.renderVNode();
-    mountVNode(this.container, nextVNode);
+    const nextTree = wrapRenderTree(nextVNode);
+    mountVNode(this.container, nextTree);
     this.currentVNode = nextVNode;
+    this.currentTree = nextTree;
     this.isMounted = true;
     this.flushEffects();
 
@@ -56,9 +59,11 @@ export class FunctionComponent {
     }
 
     const nextVNode = this.renderVNode();
-    const work = reconcileTrees(this.currentVNode, nextVNode);
+    const nextTree = wrapRenderTree(nextVNode);
+    const work = reconcileTrees(this.currentTree, nextTree);
     commitRoot(this.container, work.rootFiber);
     this.currentVNode = nextVNode;
+    this.currentTree = nextTree;
     this.flushEffects();
 
     if (this.onRender) {
@@ -88,4 +93,11 @@ export class FunctionComponent {
       runEffect();
     }
   }
+}
+
+function wrapRenderTree(vnode) {
+  return {
+    type: 'root',
+    children: [vnode],
+  };
 }

@@ -31,6 +31,7 @@ const VOID_TAGS = new Set([
 ]);
 
 const PRESERVE_WHITESPACE_TAGS = new Set(['code', 'pre', 'textarea']);
+const EVENT_HANDLER_STORE = new WeakMap();
 
 // 브라우저 DOM과 내부 virtual DOM 표현 사이를 오가며 파싱, 복제, 렌더링, 직렬화를 담당한다.
 /**
@@ -311,6 +312,16 @@ export function mountVNode(container, node) {
  * @returns {void}
  */
 export function setDomAttribute(element, name, value) {
+  if (isEventProp(name) && typeof value === 'function') {
+    setDomEventHandler(element, name, value);
+    return;
+  }
+
+  if (value === undefined) {
+    removeDomAttribute(element, name);
+    return;
+  }
+
   if (name === 'checked') {
     element.checked = true;
     element.setAttribute('checked', '');
@@ -337,6 +348,10 @@ export function setDomAttribute(element, name, value) {
  * @returns {void}
  */
 export function removeDomAttribute(element, name) {
+  if (isEventProp(name)) {
+    removeDomEventHandler(element, name);
+  }
+
   if (name === 'checked') {
     element.checked = false;
   }
@@ -379,6 +394,7 @@ function serializeNode(node, depth) {
   }
 
   const attrs = Object.entries(node.attrs || {})
+    .filter(([, value]) => typeof value !== 'function')
     .map(([name, value]) => {
       if (value === '') {
         return name;
@@ -566,4 +582,45 @@ function normalizeAttrs(attrs, path) {
   }
 
   return normalized;
+}
+
+function isEventProp(name) {
+  return /^on[A-Z]/.test(name) || /^on[a-z]/.test(name);
+}
+
+function toEventType(name) {
+  return name.slice(2).toLowerCase();
+}
+
+function getEventHandlerStore(element) {
+  if (!EVENT_HANDLER_STORE.has(element)) {
+    EVENT_HANDLER_STORE.set(element, {});
+  }
+
+  return EVENT_HANDLER_STORE.get(element);
+}
+
+function setDomEventHandler(element, name, handler) {
+  const eventType = toEventType(name);
+  const store = getEventHandlerStore(element);
+  const previousHandler = store[eventType];
+
+  if (previousHandler) {
+    element.removeEventListener(eventType, previousHandler);
+  }
+
+  element.removeAttribute(name);
+  element.addEventListener(eventType, handler);
+  store[eventType] = handler;
+}
+
+function removeDomEventHandler(element, name) {
+  const eventType = toEventType(name);
+  const store = EVENT_HANDLER_STORE.get(element);
+  const previousHandler = store?.[eventType];
+
+  if (previousHandler) {
+    element.removeEventListener(eventType, previousHandler);
+    delete store[eventType];
+  }
 }
