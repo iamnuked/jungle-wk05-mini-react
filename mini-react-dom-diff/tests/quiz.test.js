@@ -8,6 +8,7 @@ import {
 import {
   DOG_API_BASE_URL,
   fetchBreedList,
+  fetchQuizBreedList,
   fetchRandomImageByBreed,
 } from '../src/services/api.js';
 
@@ -22,7 +23,8 @@ describe('Domain and service layer', () => {
   });
 
   it('normalizeAnswer trims spaces and treats hyphen/space variants equally', () => {
-    expect(normalizeAnswer(' French-Bulldog  ')).toBe('french bulldog');
+    expect(normalizeAnswer(' French-Bulldog  ')).toBe('frenchbulldog');
+    expect(normalizeAnswer(' 토이-푸들 ')).toBe('토이푸들');
   });
 
   it('flattenBreeds converts Dog CEO breed objects into BreedEntry[]', () => {
@@ -48,10 +50,46 @@ describe('Domain and service layer', () => {
       breed: 'bulldog',
       subBreed: 'french',
       label: 'French Bulldog',
+      acceptedAnswers: ['French Bulldog', '프렌치 불독', 'Bulldog', '불독'],
     };
 
     expect(isCorrectAnswer(' french-bulldog ', answer)).toBe(true);
+    expect(isCorrectAnswer('프렌치불독', answer)).toBe(true);
+    expect(isCorrectAnswer('불독', answer)).toBe(true);
     expect(isCorrectAnswer('english bulldog', answer)).toBe(false);
+  });
+
+  it('accepts the parent breed name for curated sub-breed answers', () => {
+    const answer = {
+      key: 'poodle-toy',
+      breed: 'poodle',
+      subBreed: 'toy',
+      label: 'Toy Poodle',
+      acceptedAnswers: ['Toy Poodle', '토이 푸들', 'Poodle', '푸들'],
+    };
+
+    expect(isCorrectAnswer('푸들', answer)).toBe(true);
+    expect(isCorrectAnswer('poodle', answer)).toBe(true);
+    expect(isCorrectAnswer('토이푸들', answer)).toBe(true);
+  });
+
+  it('fetchQuizBreedList returns the curated local quiz breeds', async () => {
+    const breedList = await fetchQuizBreedList();
+
+    expect(breedList).toHaveLength(30);
+    expect(breedList).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        key: 'poodle-toy',
+        breed: 'poodle',
+        subBreed: 'toy',
+        labelKo: '토이 푸들',
+      }),
+      expect.objectContaining({
+        key: 'terrier-yorkshire',
+        breed: 'terrier',
+        subBreed: 'yorkshire',
+      }),
+    ]));
   });
 
   it('createQuestion selects an answer and combines it with the fetched image', async () => {

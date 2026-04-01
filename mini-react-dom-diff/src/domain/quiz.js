@@ -72,13 +72,16 @@ export async function createQuestion(
 }
 
 export function isCorrectAnswer(userAnswer, answer) {
-  const answerLabel = typeof answer === 'string' ? answer : answer?.label;
+  const normalizedUserAnswer = normalizeAnswer(userAnswer);
+  const acceptedAnswers = collectAcceptedAnswers(answer);
 
-  if (typeof answerLabel !== 'string' || !answerLabel) {
+  if (!normalizedUserAnswer || acceptedAnswers.length === 0) {
     return false;
   }
 
-  return normalizeAnswer(userAnswer) === normalizeAnswer(answerLabel);
+  return acceptedAnswers.some((candidate) => {
+    return normalizeAnswer(candidate) === normalizedUserAnswer;
+  });
 }
 
 export function calculateAccuracy(score, totalQuestions) {
@@ -112,4 +115,24 @@ function formatBreedToken(value) {
     .filter(Boolean)
     .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
     .join(' ');
+}
+
+function collectAcceptedAnswers(answer) {
+  if (typeof answer === 'string') {
+    return [answer];
+  }
+
+  if (!answer || typeof answer !== 'object') {
+    return [];
+  }
+
+  if (Array.isArray(answer.acceptedAnswers) && answer.acceptedAnswers.length > 0) {
+    return answer.acceptedAnswers.filter((candidate) => {
+      return typeof candidate === 'string' && candidate.trim() !== '';
+    });
+  }
+
+  return typeof answer.label === 'string' && answer.label
+    ? [answer.label]
+    : [];
 }
