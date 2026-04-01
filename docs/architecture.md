@@ -269,7 +269,7 @@ App
 - 답 입력칸
 - 제출 버튼
 - 정답/오답 피드백
-- 피드백 표시 후 자동 다음 문제 전환
+- 피드백 표시 후 다음 버튼 노출
 
 ### ResultScreen
 
@@ -285,8 +285,8 @@ stateDiagram-v2
   Start --> QuizLoading: start quiz
   QuizLoading --> QuizReady: question loaded
   QuizReady --> Answered: submit answer
-  Answered --> QuizLoading: next question
-  Answered --> Result: last question complete
+  Answered --> QuizLoading: click next
+  Answered --> Result: click next on last question
   Result --> Start: restart
 ```
 
@@ -299,9 +299,9 @@ stateDiagram-v2
 - `quiz ready -> answered`
   - 제출 버튼 클릭 시 정답 판정
 - `answered -> next quiz`
-  - 마지막 문제가 아니면 다음 문제 로드
+  - 다음 버튼 클릭 시, 마지막 문제가 아니면 다음 문제 로드
 - `answered -> result`
-  - 마지막 문제면 결과 화면 이동
+  - 다음 버튼 클릭 시, 마지막 문제면 결과 화면 이동
 - `result -> start`
   - 전체 상태 초기화
 
@@ -412,14 +412,20 @@ function submitAnswer() {}
 
 - 이미 `feedback !== null`이면 다시 채점하지 않는다.
 
-다음 문제 이동은 제출 처리 이후 자동 전환으로 처리합니다.
+제출과 다음 문제 이동은 별도 액션으로 처리합니다.
 
 전환 책임:
 
-- 마지막 문제 여부 판단
-- 다음 문제 인덱스로 이동 또는 결과 화면 이동
-- 입력값/피드백 초기화
-- 짧은 피드백 표시 이후 자동 전환
+- 제출 시
+  - 현재 입력값 읽기
+  - 중복 제출 방지
+  - 정답 판정
+  - 점수 반영
+  - 피드백 상태 반영
+- 다음 버튼 클릭 시
+  - 마지막 문제 여부 판단
+  - 다음 문제 인덱스로 이동 또는 결과 화면 이동
+  - 입력값/피드백 초기화
 
 ## 13. 파일 구조 제안
 
@@ -563,6 +569,6 @@ dog-breed-quiz/
 - Hook 상태는 `FunctionComponent` 인스턴스의 `hooks[]`에 저장한다.
 - 상태는 루트 `App`에서만 관리한다.
 - 퀴즈는 객관식이 아니라 주관식 입력 기반으로 구현한다.
-- 제출과 다음 문제 이동은 별도 액션으로 분리한다.
+- 제출 후 피드백을 표시하고, 다음 버튼 클릭으로 다음 문제 또는 결과 화면으로 이동한다.
 - 제한시간은 두지 않는다.
 - 기존 WEEK4 엔진은 최대한 유지하되, 이벤트 처리만 WEEK5에서 확장한다.
