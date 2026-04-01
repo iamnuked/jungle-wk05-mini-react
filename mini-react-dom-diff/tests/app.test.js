@@ -33,6 +33,22 @@ function createSequenceRandom(values) {
   };
 }
 
+function createDeferred() {
+  let resolve;
+  let reject;
+
+  const promise = new Promise((nextResolve, nextReject) => {
+    resolve = nextResolve;
+    reject = nextReject;
+  });
+
+  return {
+    promise,
+    resolve,
+    reject,
+  };
+}
+
 describe('Dog Breed Quiz App', () => {
   it('moves through submit -> feedback -> next button -> result flow', async () => {
     const breedList = [
@@ -107,5 +123,84 @@ describe('Dog Breed Quiz App', () => {
     expect(container.textContent).toContain('최종 결과');
     expect(container.textContent).toContain('점수 1 / 2');
     expect(container.textContent).toContain('정답률 50%');
+  });
+
+  it('ignores a late breed list response after the app unmounts', async () => {
+    const deferredBreedList = createDeferred();
+    const api = {
+      fetchBreedList: vi.fn(() => deferredBreedList.promise),
+      fetchRandomImageByBreed: vi.fn(),
+    };
+    const container = document.createElement('div');
+    const root = createRoot(App, container, { api });
+
+    root.mount();
+    root.unmount();
+
+    deferredBreedList.resolve([
+      {
+        key: 'pug',
+        breed: 'pug',
+        subBreed: null,
+        label: 'Pug',
+      },
+    ]);
+
+    await flushAsyncWork();
+
+    expect(api.fetchBreedList).toHaveBeenCalledTimes(1);
+    expect(container.innerHTML).toBe('');
+    expect(root.instance.isMounted).toBe(false);
+  });
+
+  it('ignores stale breed list results after the api prop changes', async () => {
+    const firstDeferred = createDeferred();
+    const secondDeferred = createDeferred();
+    const firstApi = {
+      fetchBreedList: vi.fn(() => firstDeferred.promise),
+      fetchRandomImageByBreed: vi.fn(),
+    };
+    const secondApi = {
+      fetchBreedList: vi.fn(() => secondDeferred.promise),
+      fetchRandomImageByBreed: vi.fn(),
+    };
+    const container = document.createElement('div');
+    const root = createRoot(App, container, { api: firstApi });
+
+    root.mount();
+    root.update({ api: secondApi });
+
+    secondDeferred.resolve([
+      {
+        key: 'pug',
+        breed: 'pug',
+        subBreed: null,
+        label: 'Pug',
+      },
+      {
+        key: 'beagle',
+        breed: 'beagle',
+        subBreed: null,
+        label: 'Beagle',
+      },
+    ]);
+
+    await waitFor(() => container.textContent.includes('사용 가능한 견종 수: 2'));
+
+    firstDeferred.resolve([
+      {
+        key: 'bulldog-french',
+        breed: 'bulldog',
+        subBreed: 'french',
+        label: 'French Bulldog',
+      },
+    ]);
+
+    await flushAsyncWork();
+
+    expect(firstApi.fetchBreedList).toHaveBeenCalledTimes(1);
+    expect(secondApi.fetchBreedList).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain('사용 가능한 견종 수: 2');
+    expect(container.textContent).not.toContain('사용 가능한 견종 수: 1');
   });
 });
