@@ -1,0 +1,270 @@
+[
+  {
+    "key": "maltese",
+    "breed": "maltese",
+    "subBreed": null,
+    "label": "Maltese",
+    "labelKo": "말티즈",
+    "acceptedAnswers": ["Maltese", "말티즈"]
+  },
+  {
+    "key": "poodle-toy",
+    "breed": "poodle",
+    "subBreed": "toy",
+    "label": "Toy Poodle",
+    "labelKo": "토이 푸들",
+    "acceptedAnswers": ["Toy Poodle", "토이 푸들", "Poodle", "푸들"]
+  },
+  {
+    "key": "poodle-miniature",
+    "breed": "poodle",
+    "subBreed": "miniature",
+    "label": "Miniature Poodle",
+    "labelKo": "미니어처 푸들",
+    "acceptedAnswers": ["Miniature Poodle", "미니어처 푸들", "Poodle", "푸들"]
+  },
+  {
+    "key": "pomeranian",
+    "breed": "pomeranian",
+    "subBreed": null,
+    "label": "Pomeranian",
+    "labelKo": "포메라니안",
+    "acceptedAnswers": ["Pomeranian", "포메라니안"]
+  },
+  {
+    "key": "chihuahua",
+    "breed": "chihuahua",
+    "subBreed": null,
+    "label": "Chihuahua",
+    "labelKo": "치와와",
+    "acceptedAnswers": ["Chihuahua", "치와와"]
+  },
+  {
+    "key": "pug",
+    "breed": "pug",
+    "subBreed": null,
+    "label": "Pug",
+    "labelKo": "퍼그",
+    "acceptedAnswers": ["Pug", "퍼그"]
+  },
+  {
+    "key": "dachshund",
+    "breed": "dachshund",
+    "subBreed": null,
+    "label": "Dachshund",
+    "labelKo": "닥스훈트",
+    "acceptedAnswers": ["Dachshund", "닥스훈트"]
+  },
+  {
+    "key": "beagle",
+    "breed": "beagle",
+    "subBreed": null,
+    "label": "Beagle",
+    "labelKo": "비글",
+    "acceptedAnswers": ["Beagle", "비글"]
+  },
+  {
+    "key": "bulldog-french",
+    "breed": "bulldog",
+    "subBreed": "french",
+    "label": "French Bulldog",
+    "labelKo": "프렌치 불독",
+    "acceptedAnswers": ["French Bulldog", "프렌치 불독", "Bulldog", "불독"]
+  },
+  {
+    "key": "shihtzu",
+    "breed": "shihtzu",
+    "subBreed": null,
+    "label": "Shih Tzu",
+    "labelKo": "시츄",
+    "acceptedAnswers": ["Shih Tzu", "Shihtzu", "시츄", "시추"]
+  },
+  {
+    "key": "papillon",
+    "breed": "papillon",
+    "subBreed": null,
+    "label": "Papillon",
+    "labelKo": "파피용",
+    "acceptedAnswers": ["Papillon", "파피용"]
+  },
+  {
+    "key": "frise-bichon",
+    "breed": "frise",
+    "subBreed": "bichon",
+    "label": "Bichon Frise",
+    "labelKo": "비숑 프리제",
+    "acceptedAnswers": ["Bichon Frise", "비숑 프리제", "Bichon", "비숑"]
+  },
+  {
+    "key": "spaniel-cocker",
+    "breed": "spaniel",
+    "subBreed": "cocker",
+    "label": "Cocker Spaniel",
+    "labelKo": "코커 스패니얼",
+    "acceptedAnswers": ["Cocker Spaniel", "코커 스패니얼", "Spaniel", "스패니얼"]
+  },
+  {
+    "key": "retriever-golden",
+    "breed": "retriever",
+    "subBreed": "golden",
+    "label": "Golden Retriever",
+    "labelKo": "골든 리트리버",
+    "acceptedAnswers": ["Golden Retriever", "골든 리트리버", "Retriever", "리트리버"]
+  },
+  {
+    "key": "labrador",
+    "breed": "labrador",
+    "subBreed": null,
+    "label": "Labrador Retriever",
+    "labelKo": "래브라도 리트리버",
+    "acceptedAnswers": [
+      "Labrador Retriever",
+      "Labrador",
+      "래브라도 리트리버",
+      "래브라도",
+      "Retriever",
+      "리트리버"
+    ]
+  },
+  {
+    "key": "german-shepherd",
+    "breed": "german",
+    "subBreed": "shepherd",
+    "label": "German Shepherd",
+    "labelKo": "저먼 셰퍼드",
+    "acceptedAnswers": ["German Shepherd", "저먼 셰퍼드", "Shepherd", "셰퍼드"]
+  },
+  {
+    "key": "pembroke",
+    "breed": "pembroke",
+    "subBreed": null,
+    "label": "Pembroke Welsh Corgi",
+    "labelKo": "웰시 코기 펨브로크",
+    "acceptedAnswers": [
+      "Pembroke Welsh Corgi",
+      "웰시 코기 펨브로크",
+      "Welsh Corgi",
+      "Corgi",
+      "웰시 코기",
+      "코기"
+    ]
+  },
+  {
+    "key": "corgi-cardigan",
+    "breed": "corgi",
+    "subBreed": "cardigan",
+    "label": "Cardigan Welsh Corgi",
+    "labelKo": "웰시 코기 카디건",
+    "acceptedAnswers": [
+      "Cardigan Welsh Corgi",
+      "웰시 코기 카디건",
+      "Welsh Corgi",
+      "Corgi",
+      "웰시 코기",
+      "코기"
+    ]
+  },
+  {
+    "key": "husky",
+    "breed": "husky",
+    "subBreed": null,
+    "label": "Siberian Husky",
+    "labelKo": "시베리안 허스키",
+    "acceptedAnswers": ["Siberian Husky", "Husky", "시베리안 허스키", "허스키"]
+  },
+  {
+    "key": "samoyed",
+    "breed": "samoyed",
+    "subBreed": null,
+    "label": "Samoyed",
+    "labelKo": "사모예드",
+    "acceptedAnswers": ["Samoyed", "사모예드"]
+  },
+  {
+    "key": "shiba",
+    "breed": "shiba",
+    "subBreed": null,
+    "label": "Shiba Inu",
+    "labelKo": "시바 이누",
+    "acceptedAnswers": ["Shiba Inu", "Shiba", "시바 이누", "시바견", "시바"]
+  },
+  {
+    "key": "chow",
+    "breed": "chow",
+    "subBreed": null,
+    "label": "Chow Chow",
+    "labelKo": "차우차우",
+    "acceptedAnswers": ["Chow Chow", "Chow", "차우차우", "차우"]
+  },
+  {
+    "key": "dalmatian",
+    "breed": "dalmatian",
+    "subBreed": null,
+    "label": "Dalmatian",
+    "labelKo": "달마시안",
+    "acceptedAnswers": ["Dalmatian", "달마시안"]
+  },
+  {
+    "key": "doberman",
+    "breed": "doberman",
+    "subBreed": null,
+    "label": "Doberman",
+    "labelKo": "도베르만",
+    "acceptedAnswers": ["Doberman", "도베르만"]
+  },
+  {
+    "key": "boxer",
+    "breed": "boxer",
+    "subBreed": null,
+    "label": "Boxer",
+    "labelKo": "복서",
+    "acceptedAnswers": ["Boxer", "복서"]
+  },
+  {
+    "key": "rottweiler",
+    "breed": "rottweiler",
+    "subBreed": null,
+    "label": "Rottweiler",
+    "labelKo": "로트와일러",
+    "acceptedAnswers": ["Rottweiler", "로트와일러"]
+  },
+  {
+    "key": "schnauzer-miniature",
+    "breed": "schnauzer",
+    "subBreed": "miniature",
+    "label": "Miniature Schnauzer",
+    "labelKo": "미니어처 슈나우저",
+    "acceptedAnswers": ["Miniature Schnauzer", "미니어처 슈나우저", "Schnauzer", "슈나우저"]
+  },
+  {
+    "key": "pinscher-miniature",
+    "breed": "pinscher",
+    "subBreed": "miniature",
+    "label": "Miniature Pinscher",
+    "labelKo": "미니어처 핀셔",
+    "acceptedAnswers": ["Miniature Pinscher", "Mini Pinscher", "미니어처 핀셔", "Pinscher", "핀셔"]
+  },
+  {
+    "key": "terrier-yorkshire",
+    "breed": "terrier",
+    "subBreed": "yorkshire",
+    "label": "Yorkshire Terrier",
+    "labelKo": "요크셔 테리어",
+    "acceptedAnswers": ["Yorkshire Terrier", "요크셔 테리어", "Yorkie", "요키", "Terrier", "테리어"]
+  },
+  {
+    "key": "terrier-westhighland",
+    "breed": "terrier",
+    "subBreed": "westhighland",
+    "label": "West Highland White Terrier",
+    "labelKo": "웨스트 하이랜드 화이트 테리어",
+    "acceptedAnswers": [
+      "West Highland White Terrier",
+      "웨스트 하이랜드 화이트 테리어",
+      "Westie",
+      "웨스티",
+      "Terrier",
+      "테리어"
+    ]
+  }
+]
