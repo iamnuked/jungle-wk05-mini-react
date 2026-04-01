@@ -114,4 +114,35 @@ describe('Mini React runtime', () => {
     expect(computed).toEqual([2, 4]);
     expect(container.innerHTML).toBe('<strong>8</strong>');
   });
+
+  it('destroy() runs effect cleanup and unmounts the current DOM', () => {
+    const container = document.createElement('div');
+    const calls = [];
+
+    function EffectComponent() {
+      useEffect(() => {
+        calls.push('effect');
+        return () => {
+          calls.push('cleanup');
+        };
+      }, []);
+
+      return createElementVNode('p', {}, [createTextVNode('mounted')]);
+    }
+
+    const root = createRoot(EffectComponent, container);
+    root.mount();
+    root.unmount();
+
+    expect(calls).toEqual(['effect', 'cleanup']);
+    expect(container.innerHTML).toBe('');
+    expect(root.instance.isMounted).toBe(false);
+  });
+
+  it('throws when a component returns an invalid render value', () => {
+    const container = document.createElement('div');
+    const component = new FunctionComponent(() => null, {}, { container });
+
+    expect(() => component.mount()).toThrow('함수형 컴포넌트는 vnode 객체를 반환해야 합니다.');
+  });
 });
