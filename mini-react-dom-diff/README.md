@@ -1,113 +1,299 @@
-# Virtual DOM Diff Lab
+# Mini React Dog Breed Quiz
 
-`Virtual DOM Diff Lab`은 브라우저 DOM을 직접 읽어 Virtual DOM으로 변환하고, 이전 상태와 다음 상태를 비교해 실제 DOM에 필요한 변경만 반영하는 과정을 시각적으로 확인할 수 있는 학습용 playground입니다.
+WEEK4에서 만든 `Virtual DOM + Diff + Patch` 엔진을 재사용해서, 함수형 컴포넌트와 Hook 기반의 `Mini React runtime`을 올리고 그 위에 `Dog Breed Quiz` 앱을 구현한 프로젝트입니다.
 
-이 프로젝트는 단순히 결과 화면을 렌더링하는 데서 끝나지 않고, `diff`, `effect queue`, `commit`, `history`까지 한 번에 확인할 수 있도록 구성되어 있습니다.
+이 프로젝트의 목표는 두 가지입니다.
 
-## Features
+- React와 비슷한 사용 경험을 아주 작은 런타임으로 직접 구현해보는 것
+- 상태 변경 시 `rerender -> diff -> patch` 흐름이 실제 앱에서 어떻게 동작하는지 확인하는 것
 
-- HTML 문자열 또는 현재 브라우저 DOM을 Virtual DOM 트리로 변환
-- 이전 트리와 다음 트리를 비교해 effect queue 생성
-- `INSERT_CHILD`, `MOVE_CHILD`, `REMOVE_CHILD`, `UPDATE_PROPS`, `UPDATE_TEXT` 추적
-- keyed diff 지원
-  - `data-key` 또는 `id`가 있으면 reorder를 `MOVE_CHILD`로 처리
-- 실제 DOM 반영 전후 상태를 분리해서 확인 가능
-- HTML 편집 모드와 VDOM(JSON) 편집 모드 제공
-- Commit history 기반 Undo / Redo 지원
+## 프로젝트 범위
 
-## How It Works
+- `FunctionComponent` 기반의 Mini React runtime
+- `useState`, `useEffect`, `useMemo` 최소 구현
+- 함수형 이벤트 props 지원
+- WEEK4 VDOM / Fiber diff / commit 엔진 재사용
+- Dog CEO API 기반 Dog Breed Quiz 앱
 
-프로젝트의 흐름은 아래와 같습니다.
+## 주요 기능
 
-1. `Actual DOM` 또는 HTML 입력을 기준으로 Virtual DOM 트리를 만듭니다.
-2. 현재 commit된 트리와 작업 중인 트리를 비교합니다.
-3. 비교 결과를 Fiber effect queue 형태로 정리합니다.
-4. `commitRoot`가 effect queue를 실제 DOM 연산으로 실행합니다.
-5. 변경 결과는 History에 기록됩니다.
+- 시작 화면에서 문제 수 선택
+- 견종 목록 로드 후 퀴즈 시작
+- 강아지 이미지와 입력창 기반 주관식 퀴즈
+- 제출 후 정답/오답 피드백 표시
+- 다음 버튼으로 다음 문제 또는 결과 화면 이동
+- 결과 화면에서 점수와 정답률 표시
+- 다시 하기로 초기 상태 복귀
 
-즉, `계산(reconcile)`과 `반영(commit)`을 분리해서 볼 수 있다는 점이 핵심입니다.
-
-이 프로젝트의 diff 알고리즘은 최소 변경을 다섯 가지 effect 케이스로 나눠서 다룹니다.
-
-- `INSERT_CHILD`
-  - 새 노드를 추가해야 하는 경우
-- `MOVE_CHILD`
-  - 기존 노드를 재생성하지 않고 위치만 바꾸는 경우
-- `REMOVE_CHILD`
-  - 더 이상 필요 없는 노드를 제거하는 경우
-- `UPDATE_PROPS`
-  - 노드는 유지한 채 속성만 변경하는 경우
-- `UPDATE_TEXT`
-  - 텍스트 노드의 내용만 변경하는 경우
-
-이 다섯 케이스는 [`reconcileTrees`](./src/lib/fiber/reconcile.js#L24)가 이전 트리와 다음 트리를 비교하면서 계산합니다. 이 과정에서 삭제는 [`scheduleDeletion`](./src/lib/fiber/reconcile.js#L278), 속성 변경은 [`markPropsUpdate`](./src/lib/fiber/reconcile.js#L324), 텍스트 변경은 [`markTextUpdate`](./src/lib/fiber/reconcile.js#L344)로 effect queue에 기록되고, 삽입과 이동 역시 reconcile 단계에서 함께 생성됩니다.
-
-이후 [`commitRoot`](./src/lib/fiber/commit.js#L22)가 effect queue를 실제 DOM 연산으로 실행합니다. 삭제는 [`commitDeletion`](./src/lib/fiber/commit.js#L140), 이동은 [`commitMove`](./src/lib/fiber/commit.js#L163), 삽입은 [`commitInsertion`](./src/lib/fiber/commit.js#L200), 속성 변경은 [`commitPropsUpdate`](./src/lib/fiber/commit.js#L222), 텍스트 변경은 [`commitTextUpdate`](./src/lib/fiber/commit.js#L245)가 담당합니다.
-
-## UI Overview
-
-- `Actual DOM`
-  - 현재 실제로 반영된 DOM 상태
-- `Editor + Preview`
-  - 다음 상태를 수정하고 실험하는 영역
-- `Fiber Effects`
-  - commit 예정인 작업을 카드 형태로 표시
-- `Effect JSON`
-  - raw effect 데이터를 그대로 확인
-- `Snapshots`
-  - commit 단위 이력 이동
-
-## Core APIs
-
-- [`parseHtmlToVNode`](./src/lib/vdom.js#L86)
-  - HTML 문자열을 내부 Virtual DOM으로 변환
-- [`domNodeToVNodeTree`](./src/lib/vdom.js#L143)
-  - 현재 브라우저 DOM을 Virtual DOM 스냅샷으로 변환
-- [`reconcileTrees`](./src/lib/fiber/reconcile.js#L24)
-  - 이전/다음 트리를 비교해 effect queue 생성
-- [`commitRoot`](./src/lib/fiber/commit.js#L22)
-  - effect queue를 실제 DOM 변경으로 반영
-- [`mountVNode`](./src/lib/vdom.js#L299)
-  - Virtual DOM을 실제 DOM으로 마운트
-
-## Compared With React
-
-이 프로젝트는 React를 대체하려는 목적의 프레임워크가 아니라, React가 내부적으로 해결하는 문제를 학습하기 위한 작은 실험 환경에 가깝습니다.
-
-- React는 상태 관리, 컴포넌트 모델, 스케줄링, 이벤트 시스템, 생태계까지 포함한 완성도 높은 UI 라이브러리입니다.
-- 이 프로젝트는 그중에서도 `Virtual DOM 비교`와 `commit 과정`에 집중해, 내부 동작을 눈으로 확인할 수 있게 단순화한 데모입니다.
-- 즉, React가 "사용하는 도구"라면 이 프로젝트는 React의 핵심 아이디어를 "설명하는 도구"에 가깝습니다.
-
-## Important Edge Cases
-
-이 playground에서 가장 중요한 엣지 케이스는 세 가지입니다. 첫째, `auto commit` 타이머가 남아 있는 상태에서 `Undo / Redo`로 히스토리를 이동하면, 이전 입력을 기준으로 예약된 commit이 뒤늦게 실행되어 사용자가 되돌린 상태를 다시 덮어쓸 수 있습니다. React는 이런 종류의 문제를 이벤트 기반 상태 업데이트와 배치 처리, 그리고 렌더 단위의 일관된 스냅샷 보장으로 줄이려 하며, 직접 DOM 타이머를 상태 기준선과 섞어 다루는 패턴을 상대적으로 덜 노출합니다.
-
-둘째, key가 없는 리스트를 재정렬하면 이 프로젝트의 index 기반 diff는 항목의 "이동"이 아니라 같은 위치의 DOM 노드를 재사용하면서 텍스트와 속성만 바꾸게 됩니다. 그 결과 입력값, 포커스, 체크 상태 같은 로컬 DOM 상태가 다른 항목에 잘못 붙을 수 있습니다. React도 key가 없으면 비슷한 문제가 생길 수 있기 때문에, 공식적으로 안정적인 `key`를 사용해 항목 정체성을 유지하도록 강하게 권장합니다.
-
-셋째, `select`와 `option` 같은 form control은 live DOM 상태와 직렬화된 Virtual DOM 표현이 쉽게 어긋납니다. 현재 구현은 주로 `option.selected`를 읽기 때문에 동적 옵션 변경, 다중 선택, `select.value` 중심 제어에서 실제 브라우저 상태와 내부 스냅샷이 불일치할 수 있습니다. React는 `value`와 `defaultValue` 같은 제어 규약을 통해 `select` 전체를 단일 상태 소스로 다루고, 개별 `option`보다 부모 `select`의 값을 기준으로 동기화하는 방식을 사용합니다.
-
-## Project Structure
-
-- [`src/lib/vdom.js`](./src/lib/vdom.js)
-  - Virtual DOM 생성, 파싱, 직렬화, DOM 변환
-- [`src/lib/fiber/reconcile.js`](./src/lib/fiber/reconcile.js)
-  - 트리 비교와 effect queue 생성
-- [`src/lib/fiber/commit.js`](./src/lib/fiber/commit.js)
-  - effect queue를 실제 DOM 연산으로 반영
-- [`src/playground/actions.js`](./src/playground/actions.js)
-  - playground 상태 흐름, commit, history, auto-commit 제어
-- [`src/ui/renderPanels.js`](./src/ui/renderPanels.js)
-  - effect, history 패널 렌더링
-
-## Run
+## 실행 방법
 
 ```bash
+cd mini-react-dom-diff
 npm install
 npm run dev
 ```
 
-## Test
+브라우저에서 Vite가 안내하는 로컬 주소를 열면 앱을 볼 수 있습니다.
+
+## 테스트 방법
 
 ```bash
+cd mini-react-dom-diff
 npm test
 ```
+
+현재 테스트 범위는 아래를 포함합니다.
+
+- Mini React runtime
+- Hook 동작
+- VDOM diff / patch
+- 이벤트 연결 및 갱신
+- Quiz 도메인 로직
+- App 전체 흐름
+
+## 데모 흐름
+
+1. 앱이 시작되면 견종 목록을 불러옵니다.
+2. 시작 화면에서 문제 수를 선택합니다.
+3. `퀴즈 시작`을 누르면 문제 이미지가 로드됩니다.
+4. 정답을 입력하고 `제출`을 누르면 정답/오답 피드백이 표시됩니다.
+5. `다음 문제` 또는 `결과 보기` 버튼으로 진행합니다.
+6. 결과 화면에서 점수와 정답률을 확인하고 `다시 하기`를 누르면 처음으로 돌아갑니다.
+
+## 구조
+
+```text
+src/
+  app.js
+  mini-react/
+    component.js
+    hooks.js
+    index.js
+    renderer.js
+  lib/
+    vdom.js
+    fiber/
+      reconcile.js
+      commit.js
+      flags.js
+  domain/
+    normalize.js
+    quiz.js
+  services/
+    api.js
+  demo/
+    main.js
+    styles.css
+tests/
+  mini-react.test.js
+  vdom.test.js
+  quiz.test.js
+  app.test.js
+```
+
+## 시스템 구조
+
+아래 구조도는 현재 프로젝트가 어떤 레이어로 나뉘어 있는지 보여줍니다.
+
+```mermaid
+flowchart TD
+  A["src/index.js<br/>공개 API"] --> B["src/mini-react/<br/>FunctionComponent + Hooks"]
+  A --> C["src/lib/vdom.js<br/>vnode 렌더링 + DOM 속성 처리"]
+  A --> D["src/app.js<br/>루트 App + 화면 전이"]
+
+  B --> E["src/lib/fiber/reconcile.js<br/>diff + effect queue"]
+  B --> F["src/lib/fiber/commit.js<br/>patch + DOM update"]
+
+  D --> G["src/domain/quiz.js<br/>문제 생성 + 정답 판정"]
+  D --> H["src/domain/normalize.js<br/>입력 정규화"]
+  D --> I["src/services/api.js<br/>Dog CEO API 연동"]
+
+  D --> J["src/demo/main.js<br/>브라우저 부트스트랩"]
+  J --> K["src/demo/styles.css<br/>UI 스타일"]
+```
+
+### 레이어별 책임
+
+- `src/mini-react`
+  - 함수형 컴포넌트 실행
+  - Hook 상태 저장
+  - mount / update / unmount 처리
+- `src/lib`
+  - vnode 생성, diff, patch, commit
+- `src/domain`
+  - 입력 정규화, 문제 생성, 정답 판정
+- `src/services`
+  - Dog CEO API 호출과 응답 정규화
+- `src/app.js`
+  - 루트 상태와 화면 전이
+
+## WEEK4 엔진 재사용 방식
+
+WEEK5에서 새로 만든 것은 “컴포넌트와 상태를 다루는 런타임”이고, DOM 변경 계산과 반영 엔진은 WEEK4 코드를 재사용했습니다.
+
+- `src/lib/vdom.js`
+  - vnode 렌더링과 DOM 속성 처리
+- `src/lib/fiber/reconcile.js`
+  - 이전/다음 트리 비교
+- `src/lib/fiber/commit.js`
+  - effect queue를 실제 DOM에 반영
+
+Mini React runtime은 컴포넌트를 실행해 최종 vnode를 만든 뒤, 이 엔진에 넘겨 변경된 부분만 실제 DOM에 반영합니다.
+
+## 상태 흐름
+
+모든 앱 상태는 루트 `App`에서만 관리합니다. 자식 화면은 별도 local state를 가지지 않고 `props`만 받아 렌더합니다.
+
+```mermaid
+flowchart TD
+  A["사용자 이벤트"] --> B["App setState"]
+  B --> C["App 재실행"]
+  C --> D["새 vnode 트리 생성"]
+  D --> E["reconcile(oldTree, newTree)"]
+  E --> F["commit DOM patch"]
+  F --> G["화면 업데이트"]
+```
+
+루트 상태 예시는 아래와 같습니다.
+
+- `phase`
+- `totalQuestions`
+- `currentQuestionIndex`
+- `breedList`
+- `currentQuestion`
+- `userAnswer`
+- `feedback`
+- `score`
+- `isLoading`
+- `error`
+
+## 컴포넌트 흐름
+
+함수형 컴포넌트는 JSX 대신 최종 vnode 객체를 반환합니다. 런타임은 각 컴포넌트를 `FunctionComponent` 인스턴스로 감싸 실행합니다.
+
+```mermaid
+flowchart TD
+  A["createRoot(App, container)"] --> B["FunctionComponent.mount()"]
+  B --> C["currentComponent 설정"]
+  C --> D["App(props) 실행"]
+  D --> E["최종 vnode 반환"]
+  E --> F["wrap root tree"]
+  F --> G["mountVNode 또는 reconcile/commit"]
+  G --> H["render 후 effect 실행"]
+```
+
+핵심 계약은 아래와 같습니다.
+
+- 컴포넌트는 `root`, `element`, `text` vnode만 반환합니다.
+- 상태 변경은 `setState`가 루트 `update()`를 호출합니다.
+- `destroy()` / `unmount()`는 effect cleanup 후 DOM을 비웁니다.
+
+## Hook 구현 원리
+
+Hook은 전역의 `currentComponent`와 각 컴포넌트 인스턴스의 `hooks[]`, `hookIndex`를 이용해 동작합니다.
+
+```mermaid
+flowchart TD
+  A["FunctionComponent.renderVNode()"] --> B["hookIndex = 0"]
+  B --> C["currentComponent = this"]
+  C --> D["useState / useEffect / useMemo 호출"]
+  D --> E["hooks[hookIndex] 읽기 또는 저장"]
+  E --> F["hookIndex 증가"]
+  F --> G["렌더 종료 후 currentComponent 해제"]
+```
+
+### `useState`
+
+- 최초 렌더에서만 초기값을 저장합니다.
+- 이후에는 같은 `hookIndex`의 값을 재사용합니다.
+- setter가 호출되면 값을 갱신하고 `component.update()`를 호출합니다.
+
+### `useEffect`
+
+- deps를 비교해 재실행 여부를 결정합니다.
+- effect는 렌더 중 즉시 실행하지 않고 `pendingEffects`에 큐잉합니다.
+- DOM patch가 끝난 뒤 실행합니다.
+- deps가 바뀌거나 unmount되면 기존 cleanup을 먼저 실행합니다.
+
+### `useMemo`
+
+- deps가 같으면 이전 계산 결과를 재사용합니다.
+- deps가 바뀌면 factory를 다시 실행해 새 값을 저장합니다.
+
+## `rerender -> diff -> patch` 흐름
+
+이 프로젝트의 핵심은 상태가 바뀌어도 전체 DOM을 매번 새로 그리지 않는다는 점입니다.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant A as App State
+  participant R as Runtime
+  participant D as Diff Engine
+  participant C as Commit
+
+  U->>A: 이벤트 발생
+  A->>R: setState
+  R->>R: App 재실행
+  R->>D: 이전 tree와 새 tree 전달
+  D->>D: effect queue 계산
+  D->>C: commitRoot 호출
+  C->>C: 변경된 DOM만 반영
+```
+
+즉, 상태 변경의 결과는 아래 순서로 이어집니다.
+
+1. `setState`
+2. 루트 컴포넌트 재실행
+3. 새 vnode 생성
+4. 이전 vnode와 diff
+5. 필요한 effect만 commit
+6. effect 실행
+
+## 실제 React와의 차이
+
+이 프로젝트는 React의 핵심 아이디어를 학습하기 위한 최소 구현입니다. 실제 React와는 아래 차이가 있습니다.
+
+- JSX transform이 없습니다.
+  - 직접 vnode 객체를 반환합니다.
+- Fiber scheduler가 없습니다.
+  - 우선순위 기반 스케줄링이나 concurrent rendering이 없습니다.
+- Hook 종류가 제한적입니다.
+  - `useState`, `useEffect`, `useMemo`만 구현했습니다.
+- 컴포넌트 트리 전체를 정교하게 추적하지 않습니다.
+  - 루트 함수형 컴포넌트를 다시 실행하고 최종 host vnode를 diff합니다.
+- React synthetic event 시스템이 없습니다.
+  - DOM `addEventListener` 기반으로 직접 연결합니다.
+
+즉, React와 동일한 완성도보다는 “React가 내부에서 해결하는 문제를 작은 코드로 직접 이해하는 것”에 초점을 둡니다.
+
+## 테스트 포인트
+
+- `tests/mini-react.test.js`
+  - Hook 상태 유지
+  - effect deps / cleanup
+  - memo 캐싱
+  - unmount cleanup
+- `tests/vdom.test.js`
+  - 텍스트/속성 변경
+  - 자식 삽입/삭제
+  - keyed 이동
+  - 이벤트 핸들러 patch
+- `tests/quiz.test.js`
+  - breed 평탄화
+  - 입력 정규화
+  - 문제 생성
+  - 정답 판정
+- `tests/app.test.js`
+  - 시작 -> 제출 -> 피드백 -> 다음 -> 결과 흐름
+  - 늦은 비동기 응답 무시
+  - cleanup 이후 stale response 무시
+
+## 한계와 후속 개선 아이디어
+
+- 함수형 컴포넌트 중첩 해석은 최소 범위만 지원합니다.
+- Hook 종류가 제한적입니다.
+- 에러 경계나 스케줄링 같은 고급 기능은 없습니다.
+- 지금 구조는 학습용 / 팀 프로젝트용 단순성에 맞춰져 있습니다.
+
+그럼에도 이 프로젝트는 작은 런타임으로도 실제 앱을 구성할 수 있고, 상태 변경이 DOM 변경으로 이어지는 과정을 직접 추적할 수 있다는 점에서 의미가 있습니다.
